@@ -1,0 +1,93 @@
+**********************************************************************
+* Author  : Brian Maher <maherb at brimworks dot com>
+* Library : lua_zlib - Lua 5.1 interface to zlib
+*
+* The MIT License
+* 
+* Copyright (c) 2009 Brian Maher
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+* 
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+* 
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
+**********************************************************************
+
+To use this library, you need zlib, get it here:
+     http://www.gzip.org/zlib/
+
+Loading the library:
+
+    If you built the library as a loadable package
+        [local] zlib = require 'zlib'
+
+    If you compiled the package statically into your application, call
+    the function "luaopen_zlib(L)". It will create a table with the zlib
+    functions and leave it on the stack.
+
+-- zlib functions --
+
+zlib.version()
+
+    returns numeric zlib version
+
+function stream = zlib.deflate([ int compression_level ])
+
+    If no compression_level is provided uses Z_DEFAULT_COMPRESSION (6),
+    compression level is a number from 1-9 where zlib.BEST_SPEED is 1
+    and zlib.BEST_COMPRESSION is 9.
+
+    Returns a "stream" function that compresses (or deflates) all
+    strings passed in.  Specifically, use it as such:
+
+    string deflated, bool eof = stream(string input [, 'sync' | 'full' | 'finish'])
+
+        Takes input and deflates and returns a portion of it,
+        optionally forcing a flush.
+
+        A 'sync' flush will force all pending output to be flushed to
+        the return value and the output is aligned on a byte boundary,
+        so that the decompressor can get all input data available so
+        far.  Flushing may degrade compression for some compression
+        algorithms and so it should be used only when necessary.
+
+        A 'full' flush will flush all output as with 'sync', and the
+        compression state is reset so that decompression can restart
+        from this point if previous compressed data has been damaged
+        or if random access is desired. Using Z_FULL_FLUSH too often
+        can seriously degrade the compression. 
+
+        A 'finish' flush will force all pending output to be processed
+        and results in the stream become unusable.  Any future
+        attempts to print anything other than the empty string will
+        result in an error that begins with IllegalState.
+
+        The eof result is true if 'finish' was specified, otherwise
+        it is false.
+
+stream = zlib.inflate()
+
+    Returns a "stream" function that decompresses (or inflates) all
+    strings passed in.  Specifically, use it as such:
+
+    string inflated, bool eof = stream(string input)
+
+        Takes input and inflates and returns a portion of it.  If it
+        detects the end of a deflation stream, then eof will be true
+        and all future calls to stream() with a non empty string will
+        result in an error that begins with IllegalState.
+
+        No flush options are provided since the maximal amount of
+        input is always processed.
