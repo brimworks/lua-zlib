@@ -11,6 +11,7 @@ _objs := $(call cc.c.to.o,$(addprefix $(pwd)/, \
 
 all: | $(_lib)
 $(_lib): cc.libs += lua z
+$(_lib): cc.objs := $(_objs)
 $(_lib): $(_objs)
 	$(cc.so.rule)
 
