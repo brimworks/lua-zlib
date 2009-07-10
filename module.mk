@@ -4,7 +4,7 @@ include $(make-common.dir)/tool/cc.mk
 include $(make-common.dir)/tool/lua.mk
 include $(make-common.dir)/layout.mk
 
-_lib  := $(lua.lib.dir)/zlib.so
+_lib  := $(lua.c.lib.dir)/zlib.so
 _objs := $(call cc.c.to.o,$(addprefix $(_pwd)/, \
     lua_zlib.c \
 ))
@@ -20,7 +20,7 @@ $(_lib): $(_objs)
 test: | lua_zlib.test
 
 lua ?= lua
-lua_zlib.test: | $(lua.lib.dir)/zlib.so
+lua_zlib.test: | $(lua.c.lib.dir)/zlib.so
 lua_zlib.test: lua.path += $(_pwd)
 lua_zlib.test: $(wildcard $(_pwd)/test*)
 	@mkdir -p $(tmp.dir)
