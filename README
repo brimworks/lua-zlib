@@ -39,9 +39,10 @@ Loading the library:
 
 -- zlib functions --
 
-zlib.version()
+major, minor, patch = zlib.version()
 
-    returns numeric zlib version
+    returns numeric zlib version for the major, minor, and patch
+    levels of the version dynamically linked in.
 
 function stream = zlib.deflate([ int compression_level ])
 

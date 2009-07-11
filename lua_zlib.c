@@ -1,6 +1,9 @@
 #include <zlib.h>
 #include <lua.h>
 #include <lauxlib.h>
+#include <stdlib.h>
+#include <string.h>
+#include <ctype.h>
 
 static int lz_deflate(lua_State *L);
 static int lz_deflate_delete(lua_State *L);
@@ -9,8 +12,27 @@ static int lz_inflate(lua_State *L);
 
 //////////////////////////////////////////////////////////////////////
 static int lz_version(lua_State *L) {
-    lua_pushnumber(L, ZLIB_VERNUM);
-    return 1;
+    char*  version = strdup(zlibVersion());
+    char*  cur     = version;
+
+    int count = 0;
+    while ( *cur ) {
+        char* begin = cur;
+        // Find all digits:
+        while ( isdigit(*cur) ) cur++;
+        if ( begin != cur ) {
+            int is_end = *cur == '\0';
+            *cur = '\0';
+            lua_pushnumber(L, atoi(begin));
+            count++;
+            if ( is_end ) break;
+            cur++;
+        }
+        while ( *cur && ! isdigit(*cur) ) cur++;
+    }
+    free(version);
+
+    return count;
 }
 
 //////////////////////////////////////////////////////////////////////

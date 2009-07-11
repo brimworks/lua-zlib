@@ -11,6 +11,7 @@ function main()
    test_invalid_input()
    test_streaming()
    test_illegal_state()
+   test_version()
 end
 
 function test_basic()
@@ -93,6 +94,13 @@ function test_illegal_state()
       string.format("IllegalState error (%s)", emsg))
    
    local enlarge = lz.inflate()
+end
+
+function test_version()
+   local major, minor, patch = lz.version()
+   ok(1 == major, "major version 1 == " .. major);
+   ok(type(minor) == "number", "minor version is number (" .. minor .. ")")
+   ok(type(patch) == "number", "patch version is number (" .. patch .. ")")
 end
 
 main()
