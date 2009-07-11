@@ -1,9 +1,9 @@
-#include <zlib.h>
-#include <lua.h>
+#include <ctype.h>
 #include <lauxlib.h>
+#include <lua.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
+#include <zlib.h>
 
 static int lz_deflate(lua_State *L);
 static int lz_deflate_delete(lua_State *L);
@@ -12,10 +12,12 @@ static int lz_inflate(lua_State *L);
 
 //////////////////////////////////////////////////////////////////////
 static int lz_version(lua_State *L) {
-    char*  version = strdup(zlibVersion());
-    char*  cur     = version;
+    const char* version = zlibVersion();
+    int         count = strlen(version) + 1;
+    char*       cur   = (char*)memcpy(lua_newuserdata(L, count),
+                                      version, count);
 
-    int count = 0;
+    count = 0;
     while ( *cur ) {
         char* begin = cur;
         // Find all digits:
@@ -30,7 +32,6 @@ static int lz_version(lua_State *L) {
         }
         while ( *cur && ! isdigit(*cur) ) cur++;
     }
-    free(version);
 
     return count;
 }
