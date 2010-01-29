@@ -13,9 +13,9 @@ static int lz_inflate(lua_State *L);
 //////////////////////////////////////////////////////////////////////
 static int lz_version(lua_State *L) {
     const char* version = zlibVersion();
-    int         count = strlen(version) + 1;
-    char*       cur   = (char*)memcpy(lua_newuserdata(L, count),
-                                      version, count);
+    int         count   = strlen(version) + 1;
+    char*       cur     = (char*)memcpy(lua_newuserdata(L, count),
+                                        version, count);
 
     count = 0;
     while ( *cur ) {
@@ -231,9 +231,17 @@ static int lz_inflate_new(lua_State *L) {
     // Allocate the stream:
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
-    stream->zalloc = Z_NULL;
-    stream->zfree  = Z_NULL;
-    lz_assert(L, inflateInit(stream), stream, __FILE__, __LINE__);
+    // By default, we will do gzip header detection w/ max window
+    // size:
+    int window_size = lua_isnumber(L, 1) ? lua_tonumber(L, 1)
+        : MAX_WBITS + 32;
+
+    stream->zalloc   = Z_NULL;
+    stream->zfree    = Z_NULL;
+    stream->next_in  = Z_NULL;
+    stream->avail_in = 0;
+
+    lz_assert(L, inflateInit2(stream, window_size), stream, __FILE__, __LINE__);
 
     // Don't allow destructor to execute unless deflateInit was successful:
     luaL_getmetatable(L, "lz.inflate.meta");

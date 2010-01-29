@@ -28,6 +28,9 @@
 To use this library, you need zlib, get it here:
      http://www.gzip.org/zlib/
 
+To build this library, you need CMake, get it here:
+    http://www.cmake.org/cmake/resources/software.html
+
 Loading the library:
 
     If you built the library as a loadable package
@@ -78,10 +81,15 @@ function stream = zlib.deflate([ int compression_level ])
         The eof result is true if 'finish' was specified, otherwise
         it is false.
 
-stream = zlib.inflate()
+stream = zlib.inflate([windowBits])
 
     Returns a "stream" function that decompresses (or inflates) all
-    strings passed in.  Specifically, use it as such:
+    strings passed in.  Optionally specify a windowBits argument
+    that is passed to inflateInit2(), see zlib.h for details about
+    this argument.  By default, gzip header detection is done, and
+    the max window size is used.
+
+    The "stream" function should be used as such:
 
     string inflated, bool eof = stream(string input)
 

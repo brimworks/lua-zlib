@@ -1,4 +1,8 @@
-print "1..6"
+print "1..9"
+
+local src_dir, build_dir = ...
+package.path  = src_dir .. "?.lua;" .. package.path
+package.cpath = build_dir .. "?.so;" .. package.cpath
 
 local tap   = require("tap")
 local lz    = require("zlib")
