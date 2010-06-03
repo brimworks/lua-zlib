@@ -28,8 +28,11 @@
 To use this library, you need zlib, get it here:
      http://www.gzip.org/zlib/
 
-To build this library, you need CMake, get it here:
+To build this library, you can use CMake and get it here:
     http://www.cmake.org/cmake/resources/software.html
+
+...or you can use GNU Make.
+   make <platform>
 
 Loading the library:
 
