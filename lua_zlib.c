@@ -219,13 +219,11 @@ static void lz_create_inflate_mt(lua_State *L) {
 }
 
 static int lz_inflate_new(lua_State *L) {
-    /*  Allocate the stream: */
+    /* Allocate the stream */
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
-    /*  By default, we will do gzip header detection w/ max window
-        size: */
-    int window_size = lua_isnumber(L, 1) ? lua_tonumber(L, 1)
-        : MAX_WBITS + 32;
+    /*  By default, we will do gzip header detection w/ max window size */
+    int window_size = lua_isnumber(L, 1) ? lua_tonumber(L, 1) : MAX_WBITS + 32;
 
     stream->zalloc   = Z_NULL;
     stream->zfree    = Z_NULL;
@@ -256,26 +254,28 @@ static int lz_inflate_delete(lua_State *L) {
     return 0;
 }
 
-LUALIB_API int luaopen_zlib(lua_State *L) {
+static const luaL_Reg zlib_functions[] = {
+    { "deflate", lz_deflate_new },
+    { "inflate", lz_inflate_new },
+    { "version", lz_version     },
+    { NULL,      NULL           }
+};
+
+#define SETLITERAL(n,v) (lua_pushliteral(L, n), lua_pushliteral(L, v), lua_settable(L, -3))
+#define SETINT(n,v) (lua_pushliteral(L, n), lua_pushinteger(L, v), lua_settable(L, -3))
+
+LUALIB_API int luaopen_zlib(lua_State * const L) {
     lz_create_deflate_mt(L);
     lz_create_inflate_mt(L);
 
-    lua_createtable(L, 0, 8);
+    luaL_register(L, "zlib", zlib_functions);
 
-    lua_pushcfunction(L, lz_deflate_new);
-    lua_setfield(L, -2, "deflate");
+    SETINT("BEST_SPEED", Z_BEST_SPEED);
+    SETINT("BEST_COMPRESSION", Z_BEST_COMPRESSION);
 
-    lua_pushcfunction(L, lz_inflate_new);
-    lua_setfield(L, -2, "inflate");
-
-    lua_pushcfunction(L, lz_version);
-    lua_setfield(L, -2, "version");
-
-    lua_pushinteger(L, Z_BEST_SPEED);
-    lua_setfield(L, -2, "BEST_SPEED");
-
-    lua_pushinteger(L, Z_BEST_COMPRESSION);
-    lua_setfield(L, -2, "BEST_COMPRESSION");
+    SETLITERAL("_COPYRIGHT", "Copyright (c) 2009-2010 Brian Maher");
+    SETLITERAL("_DESCRIPTION", "Yet another binding to the zlib library");
+    SETLITERAL("_VERSION", "lua-zlib $Id");
 
     return 1;
 }

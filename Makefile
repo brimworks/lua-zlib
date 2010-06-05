@@ -59,4 +59,4 @@ clean:
 	$(CC) -c $(CFLAGS) $(DEFS) $(INCDIR) -o $@ $<
 
 $(CMOD): $(OBJS)
-	$(LD) $(LDFLAGS) $(LIBDIR) $(OBJS) -o $@
+	$(LD) $(LDFLAGS) $(LIBDIR) $(OBJS) $(LIBS) -o $@
