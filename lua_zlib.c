@@ -166,13 +166,11 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
         /*  Close the stream: */
         lz_assert(L, end(stream), stream, __FILE__, __LINE__);
 
-        /*  Signal EOF. */
-        lua_pushboolean(L, 1);
-    } else {
-        lua_pushboolean(L, 0);
+        /*  Return the number of bytes read. */
+        lua_pushinteger(L, stream->total_in);
+        return 2;
     }
-
-    return 2;
+    return 1;
 }
 
 static void lz_create_deflate_mt(lua_State *L) {

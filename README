@@ -94,12 +94,13 @@ stream = zlib.inflate([windowBits])
 
     The "stream" function should be used as such:
 
-    string inflated, bool eof = stream(string input)
+    string inflated, number total = stream(string input)
 
         Takes input and inflates and returns a portion of it.  If it
-        detects the end of a deflation stream, then eof will be true
-        and all future calls to stream() with a non empty string will
-        result in an error that begins with IllegalState.
+        detects the end of a deflation stream, then total will be the
+        total number of bytes read from input and all future calls to
+        stream() with a non empty string will result in an error that
+        begins with IllegalState.
 
         No flush options are provided since the maximal amount of
         input is always processed.
