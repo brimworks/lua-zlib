@@ -7,8 +7,11 @@ package.cpath = build_dir .. "?.so;" .. package.cpath
 local tap   = require("tap")
 local lz    = require("zlib")
 local ok    = tap.ok
+local table = require("table")
 
 function main()
+   test_buff_err()
+   test_small_inputs()
    test_basic()
    test_large()
    test_no_input()
@@ -16,6 +19,35 @@ function main()
    test_streaming()
    test_illegal_state()
    test_version()
+end
+
+-- Thanks to Tobias Markmann for the bug report!  We are trying to
+-- force inflate() to return a Z_BUF_ERROR (which should be recovered
+-- from).  For some reason this only happens when the input is exactly
+-- LUAL_BUFFERSIZE (at least on my machine).
+function test_buff_err()
+   local text = ("X"):rep(lz._TEST_BUFSIZ);
+
+   local deflated = lz.deflate()(text, 'finish')
+
+   for i=1,#deflated do
+      lz.inflate()(deflated:sub(1,i))
+   end
+end
+
+function test_small_inputs()
+   local text = ("X"):rep(lz._TEST_BUFSIZ);
+
+   local deflated = lz.deflate()(text, 'finish')
+
+   local inflated = {}
+   local inflator = lz.inflate()
+   for i=1,#deflated do
+      local part = inflator(deflated:sub(i,i))
+      table.insert(inflated, part)
+   end
+   inflated = table.concat(inflated)
+   ok(inflated == text, "Expected " .. #text .. " Xs got " .. #inflated)
 end
 
 function test_basic()

@@ -132,7 +132,13 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
         stream->next_out  = (unsigned char*)luaL_prepbuffer(&buff);
         stream->avail_out = LUAL_BUFFERSIZE;
         result = filter(stream, flush);
-        lz_assert(L, result, stream, __FILE__, __LINE__);
+        if ( Z_BUF_ERROR != result ) {
+            /* Ignore Z_BUF_ERROR since that just indicates that we
+             * need a larger buffer in order to proceed.  Thanks to
+             * Tobias Markmann for finding this bug!
+             */
+            lz_assert(L, result, stream, __FILE__, __LINE__);
+        }
         luaL_addsize(&buff, LUAL_BUFFERSIZE - stream->avail_out);
     } while ( stream->avail_out == 0 );
 
@@ -276,6 +282,9 @@ LUALIB_API int luaopen_zlib(lua_State * const L) {
     SETLITERAL("_COPYRIGHT", "Copyright (c) 2009-2010 Brian Maher");
     SETLITERAL("_DESCRIPTION", "Yet another binding to the zlib library");
     SETLITERAL("_VERSION", "lua-zlib $Id");
+
+    /* Expose this to lua so we can do a test: */
+    SETINT("_TEST_BUFSIZ", LUAL_BUFFERSIZE);
 
     return 1;
 }

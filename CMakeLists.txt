@@ -34,6 +34,10 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.6)
   INCLUDE(CTest)
   FIND_PROGRAM(LUA NAMES lua lua.bat)
   ADD_TEST(basic ${LUA} ${CMAKE_CURRENT_SOURCE_DIR}/test.lua ${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_CURRENT_BINARY_DIR}/)
+  SET_TESTS_PROPERTIES(basic
+                       PROPERTIES
+                       FAIL_REGULAR_EXPRESSION
+                       "not ok")
 # / test zlib.so
 
 # Where to install stuff
