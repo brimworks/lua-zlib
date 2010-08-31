@@ -59,7 +59,8 @@ function stream = zlib.deflate([ int compression_level ])
     Returns a "stream" function that compresses (or deflates) all
     strings passed in.  Specifically, use it as such:
 
-    string deflated, bool eof = stream(string input [, 'sync' | 'full' | 'finish'])
+    string deflated, bool eof, number bytes_in number bytes_out =
+            stream(string input [, 'sync' | 'full' | 'finish'])
 
         Takes input and deflates and returns a portion of it,
         optionally forcing a flush.
@@ -84,6 +85,10 @@ function stream = zlib.deflate([ int compression_level ])
         The eof result is true if 'finish' was specified, otherwise
         it is false.
 
+        The bytes_in is how many bytes of input have been passed to
+        stream, and bytes_out is the number of bytes returned in
+        deflated string chunks.
+
 stream = zlib.inflate([windowBits])
 
     Returns a "stream" function that decompresses (or inflates) all
@@ -94,7 +99,7 @@ stream = zlib.inflate([windowBits])
 
     The "stream" function should be used as such:
 
-    string inflated, number total = stream(string input)
+    string inflated, bool eof, number bytes_in, number bytes_out = stream(string input)
 
         Takes input and inflates and returns a portion of it.  If it
         detects the end of a deflation stream, then total will be the
@@ -104,3 +109,10 @@ stream = zlib.inflate([windowBits])
 
         No flush options are provided since the maximal amount of
         input is always processed.
+
+        eof will be true when the input string is determined to be at
+        the "end of the file".
+
+        The bytes_in is how many bytes of input have been passed to
+        stream, and bytes_out is the number of bytes returned in
+        inflated string chunks.

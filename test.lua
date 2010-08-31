@@ -10,6 +10,7 @@ local ok    = tap.ok
 local table = require("table")
 
 function main()
+   test_stats()
    test_buff_err()
    test_small_inputs()
    test_basic()
@@ -19,6 +20,15 @@ function main()
    test_streaming()
    test_illegal_state()
    test_version()
+end
+
+function test_stats()
+   local string = ("one"):rep(20)
+   local deflated, eof, bin, bout = lz.deflate()(string, 'finish')
+   ok(eof == true, "eof is true (" .. tostring(eof) .. ")");
+   ok(bin > bout, "bytes in is greater than bytes out?")
+   ok(#deflated == bout, "bytes out is the same size as deflated string length")
+   ok(#string == bin, "bytes in is the same size as the input string length")
 end
 
 -- Thanks to Tobias Markmann for the bug report!  We are trying to
