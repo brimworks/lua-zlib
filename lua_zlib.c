@@ -5,10 +5,17 @@
 #include <string.h>
 #include <zlib.h>
 
+typedef uLong (*pchecksum)  OF((uLong crc, const Bytef *buf, uInt len));
+typedef uLong (*pcs_combine)OF((uLong crc1, uLong crc2, z_off_t len2));
+
 static int lz_deflate(lua_State *L);
 static int lz_deflate_delete(lua_State *L);
 static int lz_inflate_delete(lua_State *L);
 static int lz_inflate(lua_State *L);
+static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine);
+static int lz_adler32(lua_State *L);
+static int lz_crc32(lua_State *L);
+static int lz_tobinary32(lua_State *L);
 
 static int lz_version(lua_State *L) {
     const char* version = zlibVersion();
@@ -264,9 +271,80 @@ static int lz_inflate_delete(lua_State *L) {
     return 0;
 }
 
+static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine)
+{
+    if (lua_gettop(L) >= 3)
+        lua_pushinteger(L, combine(
+                    luaL_checkinteger(L, 1),
+                    luaL_checkinteger(L, 2),
+                    luaL_checkinteger(L, 3)));
+    else
+    {
+        uLong init;
+        size_t size;
+        const char *buf = luaL_checklstring(L, 1, &size);
+
+        if (lua_gettop(L) >= 2)
+            init = luaL_checkinteger(L, 2);
+        else
+            init = checksum(0L, Z_NULL, 0);
+
+        lua_pushinteger(L, checksum(init, buf, size));
+    }
+    return 1;
+}
+
+static int lz_adler32(lua_State *L) {
+    return lz_checksum(L, adler32, adler32_combine);
+}
+
+static int lz_crc32(lua_State *L) {
+    return lz_checksum(L, crc32, crc32_combine);
+}
+
+#if defined( __sparc__ ) || defined( __ppc__ )
+#	define CPU_BIG_ENDIAN
+#endif
+
+#define SWAP32(x) \
+	(((0xff&x)<<24)|((0xff00&x)<<8)|(0xff00&(x>>8))|(0xff&(x>>24)))
+
+static int lz_tobinary32(lua_State *L) {
+    int top = lua_gettop(L);
+    int i = 1, swap = 1;
+    luaL_Buffer buff;
+
+    if (lua_type(L, 1) == LUA_TSTRING) {
+        ++i;
+        switch (*lua_tostring(L, 1)) {
+        case 'b': case 'B': swap = 1; break;
+        case 'l': case 'L':
+        case 'n': case 'N': swap = 0; break;
+        }
+    }
+
+    luaL_buffinit(L, &buff);
+    for (; i <= top; ++i) {
+        uLong n = luaL_checkinteger(L, i);
+
+        if (
+#ifdef CPU_BIG_ENDIAN
+            !
+#endif
+        swap) n = SWAP32(n);
+        luaL_addlstring(&buff, (const char*)&n, 4);
+    }
+
+    luaL_pushresult(&buff);
+    return 1;
+}
+
 static const luaL_Reg zlib_functions[] = {
     { "deflate", lz_deflate_new },
     { "inflate", lz_inflate_new },
+    { "adler32", lz_adler32     },
+    { "crc32",   lz_crc32       },
+    { "tobinary",lz_tobinary32  },
     { "version", lz_version     },
     { NULL,      NULL           }
 };
