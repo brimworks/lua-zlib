@@ -26,7 +26,6 @@ static int lz_inflate(lua_State *L);
 static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine);
 static int lz_adler32(lua_State *L);
 static int lz_crc32(lua_State *L);
-static int lz_tobinary32(lua_State *L);
 
 static int lz_version(lua_State *L) {
     const char* version = zlibVersion();
@@ -296,14 +295,14 @@ static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine)
     {
         uLong init;
         size_t size;
-        const char *buf = luaL_checklstring(L, 1, &size);
+        const char *buf = luaL_optlstring(L, 1, NULL, &size);
 
-        if (lua_gettop(L) >= 2)
-            init = luaL_checkinteger(L, 2);
-        else
+        if (buf == NULL || lua_isnoneornil(L, 2))
             init = checksum(0L, Z_NULL, 0);
+        else
+            init = luaL_checkinteger(L, 2);
 
-        lua_pushinteger(L, checksum(init, buf, size));
+        lua_pushinteger(L, buf != NULL ? checksum(init, buf, size) : init);
     }
     return 1;
 }
@@ -316,49 +315,11 @@ static int lz_crc32(lua_State *L) {
     return lz_checksum(L, crc32, crc32_combine);
 }
 
-#if defined( __sparc__ ) || defined( __ppc__ )
-#	define CPU_BIG_ENDIAN
-#endif
-
-#define SWAP32(x) \
-	(((0xff&x)<<24)|((0xff00&x)<<8)|(0xff00&(x>>8))|(0xff&(x>>24)))
-
-static int lz_tobinary32(lua_State *L) {
-    int top = lua_gettop(L);
-    int i = 1, swap = 1;
-    luaL_Buffer buff;
-
-    if (lua_type(L, 1) == LUA_TSTRING) {
-        ++i;
-        switch (*lua_tostring(L, 1)) {
-        case 'b': case 'B': swap = 1; break;
-        case 'l': case 'L':
-        case 'n': case 'N': swap = 0; break;
-        }
-    }
-
-    luaL_buffinit(L, &buff);
-    for (; i <= top; ++i) {
-        uLong n = luaL_checkinteger(L, i);
-
-        if (
-#ifdef CPU_BIG_ENDIAN
-            !
-#endif
-        swap) n = SWAP32(n);
-        luaL_addlstring(&buff, (const char*)&n, 4);
-    }
-
-    luaL_pushresult(&buff);
-    return 1;
-}
-
 static const luaL_Reg zlib_functions[] = {
     { "deflate", lz_deflate_new },
     { "inflate", lz_inflate_new },
     { "adler32", lz_adler32     },
     { "crc32",   lz_crc32       },
-    { "tobinary",lz_tobinary32  },
     { "version", lz_version     },
     { NULL,      NULL           }
 };
