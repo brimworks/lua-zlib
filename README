@@ -116,3 +116,39 @@ stream = zlib.inflate([windowBits])
         The bytes_in is how many bytes of input have been passed to
         stream, and bytes_out is the number of bytes returned in
         inflated string chunks.
+
+init = zlib.adler32()
+checksum = zlib.adler32(string input)
+new checksum = zlib.adler32(partical string input, previous checksum)
+new checksum = zlib.adler32(previous checksum, remain part checksum, remain part length)
+
+init = zlib.crc32()
+checksum = zlib.crc32(string input)
+new checksum = zlib.crc32(partical string input, previous checksum)
+new checksum = zlib.crc32(previous checksum, remain part checksum, remain part length)
+
+	these function used to compute the checksum of a string data.
+	there two algorithm of checksum, adler32 and crc32.
+
+	if you call the function without argument, it will give a
+	initial value used in partical mode.
+
+	if you call the function with a string, the checksum of this
+	string is returned.
+
+	if you call the function with a string and a preious checksum
+	(partical mode), the function will compute the checksum of the
+	string concated with preious string input (used to compute
+	preious checksum) and the new string input given in call. e.g.
+
+	    assert(zlib.adler32 "onetwo" == zlib.adler32("two", zlib.adler32("one")))
+
+	and if you have both checksum of two part input, you can used
+	the combine mode: just pass the preious checksum, and the
+	checksum of new part, and the length of the new part. e.g.
+
+	    assert(zlib.adler32 "onetwo" == zlib.adler32(
+		zlib.adler32 "one",
+		zlib.adler32 "two",
+		3 -- the length of second part "two"
+	    ))

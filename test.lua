@@ -1,8 +1,8 @@
 print "1..9"
 
 local src_dir, build_dir = ...
-package.path  = src_dir .. "?.lua;" .. package.path
-package.cpath = build_dir .. "?.so;" .. package.cpath
+package.path  = (src_dir or "./") .. "?.lua;" .. package.path
+package.cpath = (build_dir or "./") .. "?.so;" .. package.cpath
 
 local tap   = require("tap")
 local lz    = require("zlib")
@@ -19,6 +19,7 @@ function main()
    test_invalid_input()
    test_streaming()
    test_illegal_state()
+   test_checksum()
    test_version()
 end
 
@@ -140,6 +141,29 @@ function test_illegal_state()
       string.format("IllegalState error (%s)", emsg))
    
    local enlarge = lz.inflate()
+end
+
+function test_checksum()
+    local string = ("one"):rep(100)
+    local res = zlib.adler32(string)
+    local res2 = zlib.adler32()
+    local res3 = zlib.adler32(("one"):rep(50))
+    res3 = zlib.adler32(res3, res3, 50*3)
+    for i = 1, 100 do
+        res2 = zlib.adler32("one", res2)
+    end
+    ok(res == res2, "partical adler32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
+    ok(res == res3, "combined adler32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
+
+    local res = zlib.crc32(string)
+    local res2 = zlib.crc32()
+    local res3 = zlib.crc32(("one"):rep(50))
+    res3 = zlib.crc32(res3, res3, 50*3)
+    for i = 1, 100 do
+        res2 = zlib.crc32("one", res2)
+    end
+    ok(res == res2, "partical crc32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
+    ok(res == res3, "combined crc32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
 end
 
 function test_version()
