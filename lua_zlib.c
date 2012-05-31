@@ -8,6 +8,16 @@
 typedef uLong (*pchecksum)  OF((uLong crc, const Bytef *buf, uInt len));
 typedef uLong (*pcs_combine)OF((uLong crc1, uLong crc2, z_off_t len2));
 
+/*
+ * ** compatibility with Lua 5.2
+ * */
+#if (LUA_VERSION_NUM == 502)
+#undef luaL_register
+#define luaL_register(L,n,f) \
+               { if ((n) == NULL) luaL_setfuncs(L,f,0); else luaL_newlib(L,f); }
+
+#endif
+
 static int lz_deflate(lua_State *L);
 static int lz_deflate_delete(lua_State *L);
 static int lz_inflate_delete(lua_State *L);

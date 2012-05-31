@@ -8,6 +8,7 @@ local tap   = require("tap")
 local lz    = require("zlib")
 local ok    = tap.ok
 local table = require("table")
+local io    = require("io")
 
 function main()
    test_stats()
@@ -21,6 +22,19 @@ function main()
    test_illegal_state()
    test_checksum()
    test_version()
+   test_tom_macwright()
+end
+
+function test_tom_macwright()
+    local deflated =
+        assert(io.open(src_dir.. "/tom_macwright.gz")):read("*a")
+
+    local inflated = lz.inflate()(deflated)
+
+    local expected_inflated =
+        assert(io.open(src_dir.. "/tom_macwright.out")):read("*a")
+
+    ok(expected_inflated == inflated, "Tom MacWright Test")
 end
 
 function test_stats()
