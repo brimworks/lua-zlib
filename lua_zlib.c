@@ -95,7 +95,6 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
      int flush = Z_NO_FLUSH, result;
      z_stream* stream;
      luaL_Buffer buff;
-     size_t avail_in;
 
     if ( filter == deflate ) {
         const char *const opts[] = { "none", "sync", "full", "finish", NULL };
@@ -132,8 +131,16 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
     }
 
     /*  Do the actual deflate'ing: */
-    stream->next_in = (unsigned char*)lua_tolstring(L, -1, &avail_in);
-    stream->avail_in = avail_in;
+    if (lua_gettop(L) > 0 && lua_isstring(L, -1))
+    {
+      stream->next_in = (unsigned char*)lua_tolstring(L, -1, &stream->avail_in);
+    }
+    else
+    {
+      stream->next_in = 0;
+      stream->avail_in = 0;
+    }
+
     if ( ! stream->avail_in && ! flush ) {
         /*  Passed empty string, make it a noop instead of erroring out. */
         lua_pushstring(L, "");
@@ -244,7 +251,7 @@ static int lz_inflate_new(lua_State *L) {
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
     /*  By default, we will do gzip header detection w/ max window size */
-    int window_size = lua_isnumber(L, 1) ? lua_tonumber(L, 1) : MAX_WBITS + 32;
+    int window_size = lua_isnumber(L, 1) ? (int)lua_tonumber(L, 1) : MAX_WBITS + 32;
 
     stream->zalloc   = Z_NULL;
     stream->zfree    = Z_NULL;
