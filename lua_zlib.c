@@ -244,7 +244,7 @@ static int lz_inflate_new(lua_State *L) {
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
     /*  By default, we will do gzip header detection w/ max window size */
-    int window_size = lua_isnumber(L, 1) ? lua_tonumber(L, 1) : MAX_WBITS + 32;
+    int window_size = lua_isnumber(L, 1) ? lua_tointeger(L, 1) : MAX_WBITS + 32;
 
     stream->zalloc   = Z_NULL;
     stream->zfree    = Z_NULL;
