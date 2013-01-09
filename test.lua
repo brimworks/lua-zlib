@@ -22,6 +22,7 @@ function main()
    test_illegal_state()
    test_version()
    test_tom_macwright()
+   test_amnon_david()
 end
 
 function test_tom_macwright()
@@ -34,6 +35,16 @@ function test_tom_macwright()
         assert(io.open(src_dir.. "/tom_macwright.out")):read("*a")
 
     ok(expected_inflated == inflated, "Tom MacWright Test")
+end
+
+function test_amnon_david()
+    local body = assert(io.open(src_dir.."/amnon_david.gz")):read("*a")
+
+    local inflate = zlib.inflate()
+    local inflated, eof, bytes_in, bytes_out = inflate(body)
+
+    local deflate = zlib.deflate()
+    local deflated, eof, bytes_in, bytes_out = deflate(inflated, "full")
 end
 
 function test_stats()
@@ -75,13 +86,15 @@ function test_small_inputs()
 end
 
 function test_basic()
-   local test_string = "abcdefghijklmnopqrstuv"
+    local test_string = "abcdefghijklmnopqrstuv"
 
-   -- Input to deflate is same as output to inflate:
-   local deflated = lz.deflate()(test_string, "finish")
-   local inflated = lz.inflate()(deflated, "finish")
+    ok(lz.inflate()(lz.deflate()(), "finish") == "")
 
-   ok(test_string == inflated, "'" .. tostring(test_string) .. "' == '" .. tostring(inflated) .. "'")
+    -- Input to deflate is same as output to inflate:
+    local deflated = lz.deflate()(test_string, "finish")
+    local inflated = lz.inflate()(deflated, "finish")
+
+    ok(test_string == inflated, "'" .. tostring(test_string) .. "' == '" .. tostring(inflated) .. "'")
 end
 
 function test_large()
@@ -107,12 +120,13 @@ end
 
 function test_invalid_input()
    local stream = lz.inflate()
-   local _, emsg = pcall(
+   local isok, err = pcall(
       function()
          stream("bad input")
       end)
-   ok(string.find(emsg, "^InvalidInput"),
-      string.format("InvalidInput error (%s)", emsg))
+   ok(not isok)
+   ok(string.find(err, "^InvalidInput"),
+      string.format("InvalidInput error (%s)", err))
 end
 
 function test_streaming()

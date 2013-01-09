@@ -92,10 +92,10 @@ static int lz_assert(lua_State *L, int result, const z_stream* stream, const cha
  * if no params, terminates the stream (as if we got empty string and Z_FINISH).
  */
 static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end)(z_streamp), char* name) {
-     int flush = Z_NO_FLUSH, result;
-     z_stream* stream;
-     luaL_Buffer buff;
-     size_t avail_in;
+    int flush = Z_NO_FLUSH, result;
+    z_stream* stream;
+    luaL_Buffer buff;
+    size_t avail_in;
 
     if ( filter == deflate ) {
         const char *const opts[] = { "none", "sync", "full", "finish", NULL };
@@ -132,8 +132,11 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
     }
 
     /*  Do the actual deflate'ing: */
-    stream->next_in = (unsigned char*)lua_tolstring(L, -1, &avail_in);
+    stream->next_in = lua_gettop(L) > 0 ?
+        (unsigned char*)lua_tolstring(L, -1, &avail_in) :
+        NULL;
     stream->avail_in = avail_in;
+
     if ( ! stream->avail_in && ! flush ) {
         /*  Passed empty string, make it a noop instead of erroring out. */
         lua_pushstring(L, "");
