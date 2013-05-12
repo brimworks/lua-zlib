@@ -172,26 +172,20 @@ function test_illegal_state()
 end
 
 function test_checksum()
-    local string = ("one"):rep(100)
-    local res = zlib.adler32(string)
-    local res2 = zlib.adler32()
-    local res3 = zlib.adler32(("one"):rep(50))
-    res3 = zlib.adler32(res3, res3, 50*3)
-    for i = 1, 100 do
-        res2 = zlib.adler32("one", res2)
-    end
-    ok(res == res2, "partical adler32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
-    ok(res == res3, "combined adler32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
+   for _, factory in pairs{zlib.crc32, zlib.adler32} do
+      local csum = factory()("one two")
 
-    local res = zlib.crc32(string)
-    local res2 = zlib.crc32()
-    local res3 = zlib.crc32(("one"):rep(50))
-    res3 = zlib.crc32(res3, res3, 50*3)
-    for i = 1, 100 do
-        res2 = zlib.crc32("one", res2)
-    end
-    ok(res == res2, "partical crc32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
-    ok(res == res3, "combined crc32 is equal whole checksum (" .. ("%04x"):format(res) .. ")")
+      -- Multiple calls:
+      local compute = factory()
+      compute("one")
+      assert(csum == compute(" two"))
+
+      -- Multiple compute_checksums joined:
+      local compute1, compute2 = factory(), factory()
+      compute1("one")
+      compute2(" two")
+      assert(csum == compute1(compute2))
+   end
 end
 
 function test_version()

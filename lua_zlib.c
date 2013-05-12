@@ -15,15 +15,16 @@
 
 #endif
 
-typedef uLong (*pchecksum)  OF((uLong crc, const Bytef *buf, uInt len));
-typedef uLong (*pcs_combine)OF((uLong crc1, uLong crc2, z_off_t len2));
+typedef uLong (*checksum_t)  OF((uLong crc, const Bytef *buf, uInt len));
+typedef uLong (*checksum_combine_t)OF((uLong crc1, uLong crc2, z_off_t len2));
 
 
 static int lz_deflate(lua_State *L);
 static int lz_deflate_delete(lua_State *L);
 static int lz_inflate_delete(lua_State *L);
 static int lz_inflate(lua_State *L);
-static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine);
+static int lz_checksum(lua_State *L);
+static int lz_checksum_new(lua_State *L, checksum_t checksum, checksum_combine_t combine);
 static int lz_adler32(lua_State *L);
 static int lz_crc32(lua_State *L);
 
@@ -284,35 +285,73 @@ static int lz_inflate_delete(lua_State *L) {
     return 0;
 }
 
-static int lz_checksum(lua_State *L, pchecksum checksum, pcs_combine combine)
-{
-    if (lua_gettop(L) >= 3)
-        lua_pushinteger(L, combine(
-                    luaL_checkinteger(L, 1),
-                    luaL_checkinteger(L, 2),
-                    luaL_checkinteger(L, 3)));
-    else
-    {
-        uLong init;
-        size_t size;
-        const char *buf = luaL_optlstring(L, 1, NULL, &size);
+static int lz_checksum(lua_State *L) {
+    if ( lua_gettop(L) <= 0 ) {
+        lua_pushvalue(L, lua_upvalueindex(3));
+        lua_pushvalue(L, lua_upvalueindex(4));
+    } else if ( lua_isfunction(L, 1) ) {
+        checksum_combine_t combine = (checksum_combine_t)
+            lua_touserdata(L, lua_upvalueindex(2));
 
-        if (buf == NULL || lua_isnoneornil(L, 2))
-            init = checksum(0L, Z_NULL, 0);
-        else
-            init = luaL_checkinteger(L, 2);
+        lua_pushvalue(L, 1);
+        lua_call(L, 0, 2);
+        if ( ! lua_isnumber(L, -2) || ! lua_isnumber(L, -1) ) {
+            luaL_argerror(L, 1, "expected function to return two numbers");
+        }
 
-        lua_pushinteger(L, buf != NULL ? checksum(init, buf, size) : init);
+        /* Calculate and replace the checksum */
+        lua_pushnumber(L,
+                       combine((uLong)lua_tonumber(L, lua_upvalueindex(3)),
+                               (uLong)lua_tonumber(L, -2),
+                               (z_off_t)lua_tonumber(L, -1)));
+        lua_pushvalue(L, -1);
+        lua_replace(L, lua_upvalueindex(3));
+
+        /* Calculate and replace the length */
+        lua_pushnumber(L,
+                       lua_tonumber(L, lua_upvalueindex(4)) + lua_tonumber(L, -2));
+        lua_pushvalue(L, -1);
+        lua_replace(L, lua_upvalueindex(4));
+    } else {
+        const Bytef* str;
+        size_t       len;
+
+        checksum_t checksum = (checksum_t)
+            lua_touserdata(L, lua_upvalueindex(1));
+        str = (const Bytef*)luaL_checklstring(L, 1, &len);
+ 
+        /* Calculate and replace the checksum */
+        lua_pushnumber(L,
+                       checksum((uLong)lua_tonumber(L, lua_upvalueindex(3)),
+                                str,
+                                len));
+        lua_pushvalue(L, -1);
+        lua_replace(L, lua_upvalueindex(3));
+        
+        /* Calculate and replace the length */
+        lua_pushnumber(L,
+                       lua_tonumber(L, lua_upvalueindex(4)) + len);
+        lua_pushvalue(L, -1);
+        lua_replace(L, lua_upvalueindex(4));
     }
+    return 2;
+}
+
+static int lz_checksum_new(lua_State *L, checksum_t checksum, checksum_combine_t combine) {
+    lua_pushlightuserdata(L, checksum);
+    lua_pushlightuserdata(L, combine);
+    lua_pushnumber(L, checksum(0L, Z_NULL, 0));
+    lua_pushnumber(L, 0);
+    lua_pushcclosure(L, lz_checksum, 4);
     return 1;
 }
 
 static int lz_adler32(lua_State *L) {
-    return lz_checksum(L, adler32, adler32_combine);
+    return lz_checksum_new(L, adler32, adler32_combine);
 }
 
 static int lz_crc32(lua_State *L) {
-    return lz_checksum(L, crc32, crc32_combine);
+    return lz_checksum_new(L, crc32, crc32_combine);
 }
 
 static const luaL_Reg zlib_functions[] = {

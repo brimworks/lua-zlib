@@ -45,7 +45,7 @@ Loading the library:
 
 -- zlib functions --
 
-major, minor, patch = zlib.version()
+int major, int minor, int patch = zlib.version()
 
     returns numeric zlib version for the major, minor, and patch
     levels of the version dynamically linked in.
@@ -59,7 +59,7 @@ function stream = zlib.deflate([ int compression_level ])
     Returns a "stream" function that compresses (or deflates) all
     strings passed in.  Specifically, use it as such:
 
-    string deflated, bool eof, number bytes_in number bytes_out =
+    string deflated, bool eof, int bytes_in, int bytes_out =
             stream(string input [, 'sync' | 'full' | 'finish'])
 
         Takes input and deflates and returns a portion of it,
@@ -89,7 +89,7 @@ function stream = zlib.deflate([ int compression_level ])
         stream, and bytes_out is the number of bytes returned in
         deflated string chunks.
 
-stream = zlib.inflate([windowBits])
+function stream = zlib.inflate([int windowBits])
 
     Returns a "stream" function that decompresses (or inflates) all
     strings passed in.  Optionally specify a windowBits argument
@@ -99,7 +99,8 @@ stream = zlib.inflate([windowBits])
 
     The "stream" function should be used as such:
 
-    string inflated, bool eof, number bytes_in, number bytes_out = stream(string input)
+    string inflated, bool eof, int bytes_in, int bytes_out =
+            stream(string input)
 
         Takes input and inflates and returns a portion of it.  If it
         detects the end of a deflation stream, then total will be the
@@ -117,38 +118,34 @@ stream = zlib.inflate([windowBits])
         stream, and bytes_out is the number of bytes returned in
         inflated string chunks.
 
-init = zlib.adler32()
-checksum = zlib.adler32(string input)
-new checksum = zlib.adler32(partical string input, previous checksum)
-new checksum = zlib.adler32(previous checksum, remain part checksum, remain part length)
 
-init = zlib.crc32()
-checksum = zlib.crc32(string input)
-new checksum = zlib.crc32(partical string input, previous checksum)
-new checksum = zlib.crc32(previous checksum, remain part checksum, remain part length)
+function compute_checksum = zlib.adler32()
+function compute_checksum = zlib.crc32()
 
-	these function used to compute the checksum of a string data.
-	there two algorithm of checksum, adler32 and crc32.
+    Create a new checksum computation function using either the
+    adler32 or crc32 algorithms.  This resulting function should be
+    used as such:
 
-	if you call the function without argument, it will give a
-	initial value used in partical mode.
+    int checksum = compute_checksum(string input |
+                                    function compute_checksum)
 
-	if you call the function with a string, the checksum of this
-	string is returned.
+        The compute_checksum function takes as input either a string
+        that is logically getting appended to or another
+        compute_checksum function that is logically getting appended.
+        The result is the updated checksum.
 
-	if you call the function with a string and a preious checksum
-	(partical mode), the function will compute the checksum of the
-	string concated with preious string input (used to compute
-	preious checksum) and the new string input given in call. e.g.
+        For example, these uses will all result in the same checksum:
 
-	    assert(zlib.adler32 "onetwo" == zlib.adler32("two", zlib.adler32("one")))
+            -- All in one call:
+            local csum = zlib.crc32()("one two")
 
-	and if you have both checksum of two part input, you can used
-	the combine mode: just pass the preious checksum, and the
-	checksum of new part, and the length of the new part. e.g.
+            -- Multiple calls:
+            local compute = zlib.crc32()
+            compute("one")
+            assert(csum == compute(" two"))
 
-	    assert(zlib.adler32 "onetwo" == zlib.adler32(
-		zlib.adler32 "one",
-		zlib.adler32 "two",
-		3 -- the length of second part "two"
-	    ))
+            -- Multiple compute_checksums joined:
+            local compute1, compute2 = zlib.crc32(), zlib.crc32()
+            compute1("one")
+            compute2(" two")
+            assert(csum == compute1(compute2))
