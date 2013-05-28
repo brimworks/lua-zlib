@@ -15,6 +15,11 @@
 
 #endif
 
+// compatibility with gentoo
+#ifndef OF
+#define OF _Z_OF
+#endif
+
 typedef uLong (*checksum_t)  OF((uLong crc, const Bytef *buf, uInt len));
 typedef uLong (*checksum_combine_t)OF((uLong crc1, uLong crc2, z_off_t len2));
 
