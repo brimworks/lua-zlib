@@ -15,8 +15,8 @@
 
 #endif
 
-typedef uLong (*checksum_t)  OF((uLong crc, const Bytef *buf, uInt len));
-typedef uLong (*checksum_combine_t)OF((uLong crc1, uLong crc2, z_off_t len2));
+typedef uLong (*checksum_t)        (uLong crc, const Bytef *buf, uInt len);
+typedef uLong (*checksum_combine_t)(uLong crc1, uLong crc2, z_off_t len2);
 
 
 static int lz_deflate(lua_State *L);
