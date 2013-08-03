@@ -15,6 +15,8 @@
 
 #endif
 
+#define DEF_MEM_LEVEL 8
+
 typedef uLong (*checksum_t)        (uLong crc, const Bytef *buf, uInt len);
 typedef uLong (*checksum_combine_t)(uLong crc1, uLong crc2, z_off_t len2);
 
@@ -209,15 +211,20 @@ static void lz_create_deflate_mt(lua_State *L) {
 
 static int lz_deflate_new(lua_State *L) {
     int level = luaL_optint(L, 1, Z_DEFAULT_COMPRESSION);
+    int window_size = luaL_optint(L, 2, MAX_WBITS);
 
     /*  Allocate the stream: */
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
     stream->zalloc = Z_NULL;
     stream->zfree  = Z_NULL;
-    lz_assert(L, deflateInit(stream, level), stream, __FILE__, __LINE__);
 
-    /*  Don't allow destructor to execute unless deflateInit was successful: */
+    int result = deflateInit2(stream, level, Z_DEFLATED, window_size,
+                              DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
+
+    lz_assert(L, result, stream, __FILE__, __LINE__);
+
+    /*  Don't allow destructor to execute unless deflateInit2 was successful: */
     luaL_getmetatable(L, "lz.deflate.meta");
     lua_setmetatable(L, -2);
 
