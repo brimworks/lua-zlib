@@ -41,10 +41,10 @@ end
 function test_amnon_david()
     local body = assert(io.open(src_dir.."/amnon_david.gz")):read("*a")
 
-    local inflate = zlib.inflate()
+    local inflate = lz.inflate()
     local inflated, eof, bytes_in, bytes_out = inflate(body)
 
-    local deflate = zlib.deflate()
+    local deflate = lz.deflate()
     local deflated, eof, bytes_in, bytes_out = deflate(inflated, "full")
 end
 
@@ -172,7 +172,7 @@ function test_illegal_state()
 end
 
 function test_checksum()
-   for _, factory in pairs{zlib.crc32, zlib.adler32} do
+   for _, factory in pairs{lz.crc32, lz.adler32} do
       local csum = factory()("one two")
 
       -- Multiple calls:
