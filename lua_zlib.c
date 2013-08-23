@@ -141,9 +141,12 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
     }
 
     /*  Do the actual deflate'ing: */
-    stream->next_in = lua_gettop(L) > 0 ?
-        (unsigned char*)lua_tolstring(L, -1, &avail_in) :
-        NULL;
+    if (lua_gettop(L) > 0) {
+        stream->next_in = (unsigned char*)lua_tolstring(L, -1, &avail_in);
+    } else {
+        stream->next_in = NULL;
+        avail_in = 0;
+    }
     stream->avail_in = avail_in;
 
     if ( ! stream->avail_in && ! flush ) {
