@@ -1,9 +1,14 @@
 # This Makefile is based on LuaSec's Makefile. Thanks to the LuaSec developers.
 # Inform the location to intall the modules
-LUAPATH  = /usr/share/lua/5.1
-LUACPATH = /usr/lib/lua/5.1
-INCDIR   = -I/usr/include/lua5.1
-LIBDIR   = -L/usr/lib
+
+uname_S := $(shell sh -c 'uname -s 2>/dev/null || echo not')
+
+LUA_DIR      ?= /usr/local
+LUA_LIBDIR    = $(LUA_DIR)/lib/lua/5.1
+LUA_SHAREDIR  = $(LUA_DIR)/share/lua/5.1
+
+INCDIR ?= -I/usr/include/lua5.1
+LIBDIR ?= -L/usr/local/lib
 
 # For Mac OS X: set the system version
 MACOSX_VERSION = 10.4
@@ -11,52 +16,38 @@ MACOSX_VERSION = 10.4
 CMOD = zlib.so
 OBJS = lua_zlib.o
 
-LIBS = -lz -llua -lm
-WARN = -Wall -pedantic
+LIBS ?= -lz -llua -lm
+WARN ?= -Wall -pedantic
 
-BSD_CFLAGS  = -O2 -fPIC $(WARN) $(INCDIR) $(DEFS)
-BSD_LDFLAGS = -O -shared -fPIC $(LIBDIR)
+ifeq ($(uname_S),Darwin)
+	OS_CFLAGS  = -O2 -fPIC -fno-common $(WARN)
+	OS_LDFLAGS = -bundle -undefined dynamic_lookup -fPIC $(LIBDIR)
+	OS_ENV = env MACOSX_DEPLOYMENT_TARGET='$(MACVER)'
+endif
+ifeq ($(uname_S),$(filter $(uname_S),Linux FreeBSD GNU/kFreeBSD OpenBSD NetBSD))
+	OS_CFLAGS  = -O2 -fPIC $(WARN)
+	OS_LDFLAGS = -shared -fPIC $(LIBDIR)
+	OS_ENV =
+endif
 
-LNX_CFLAGS  = -O2 -fPIC $(WARN) $(INCDIR) $(DEFS)
-LNX_LDFLAGS = -O -shared -fPIC $(LIBDIR)
+CFLAGS  ?= $(OS_CFLAGS)
+LDFLAGS ?= $(OS_LDFLAGS)
+ENV     ?= $(OS_ENV)
 
-MAC_ENV     = env MACOSX_DEPLOYMENT_TARGET='$(MACVER)'
-MAC_CFLAGS  = -O2 -fPIC -fno-common $(WARN) $(INCDIR) $(DEFS)
-MAC_LDFLAGS = -bundle -undefined dynamic_lookup -fPIC $(LIBDIR)
+.PHONY: clean install uninstall
 
-CC = gcc
-LD = $(MYENV) gcc
-CFLAGS  = $(MYCFLAGS)
-LDFLAGS = $(MYLDFLAGS)
+$(CMOD): $(OBJS)
+	$(CC) $(LDFLAGS) -o $(CMOD) $(LIBDIR) $(OBJS)
 
-.PHONY: all clean install none linux bsd macosx
-
-all:
-	@echo "Usage: $(MAKE) <platform>"
-	@echo "  * linux"
-	@echo "  * bsd"
-	@echo "  * macosx"
+$(OBJS):
+	$(CC) $(CFLAGS) $(INCDIR) -c lua_zlib.c -o $(OBJS)
 
 install: $(CMOD)
-	cp $(CMOD) $(LUACPATH)
+	mkdir -p $(LUA_LIBDIR)
+	cp $(CMOD) $(LUA_LIBDIR)
 
 uninstall:
-	rm $(LUACPATH)/zlib.so
-
-linux:
-	@$(MAKE) $(CMOD) MYCFLAGS="$(LNX_CFLAGS)" MYLDFLAGS="$(LNX_LDFLAGS)" INCDIR="$(INCDIR)" LIBDIR="$(LIBDIR)" DEFS="$(DEFS)"
-
-bsd:
-	@$(MAKE) $(CMOD) MYCFLAGS="$(BSD_CFLAGS)" MYLDFLAGS="$(BSD_LDFLAGS)" INCDIR="$(INCDIR)" LIBDIR="$(LIBDIR)" DEFS="$(DEFS)"
-
-macosx:
-	@$(MAKE) $(CMOD) MYCFLAGS="$(MAC_CFLAGS)" MYLDFLAGS="$(MAC_LDFLAGS)" MYENV="$(MAC_ENV)" INCDIR="$(INCDIR)" LIBDIR="$(LIBDIR)" DEFS="$(DEFS)"
+	rm $(LUA_LIBDIR)/$(CMOD)
 
 clean:
 	rm -f $(OBJS) $(CMOD)
-
-.c.o:
-	$(CC) -c $(CFLAGS) $(DEFS) $(INCDIR) -o $@ $<
-
-$(CMOD): $(OBJS)
-	$(LD) $(LDFLAGS) $(LIBDIR) $(OBJS) $(LIBS) -o $@
