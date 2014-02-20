@@ -1,9 +1,9 @@
 # This Makefile is based on LuaSec's Makefile. Thanks to the LuaSec developers.
 # Inform the location to intall the modules
-LUAPATH  = /usr/share/lua/5.1
-LUACPATH = /usr/lib/lua/5.1
-INCDIR   = -I/usr/include/lua5.1
-LIBDIR   = -L/usr/lib
+LUAPATH  ?= /usr/share/lua/5.1
+LUACPATH ?= /usr/lib/lua/5.1
+INCDIR   ?= -I/usr/include/lua5.1
+LIBDIR   ?= -L/usr/lib
 
 # For Mac OS X: set the system version
 MACOSX_VERSION = 10.4
