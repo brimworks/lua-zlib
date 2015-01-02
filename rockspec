@@ -27,6 +27,9 @@ external_dependencies = {
 build = {
    type = "builtin",
    modules = {
-     zlib = "lua_zlib.c"
+      zlib = {
+         sources = { "lua_zlib.c" };
+         libraries = { "z" },
+      };
    }
 }
