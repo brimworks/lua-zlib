@@ -8,11 +8,16 @@
 /*
  * ** compatibility with Lua 5.2
  * */
-#if (LUA_VERSION_NUM == 502)
+#if (LUA_VERSION_NUM >= 502)
 #undef luaL_register
 #define luaL_register(L,n,f) \
                { if ((n) == NULL) luaL_setfuncs(L,f,0); else luaL_newlib(L,f); }
 
+#endif
+
+#if (LUA_VERSION_NUM >= 503)
+#undef luaL_optint
+#define luaL_optint(L,n,d)  ((int)luaL_optinteger(L,(n),(d)))
 #endif
 
 #define DEF_MEM_LEVEL 8
