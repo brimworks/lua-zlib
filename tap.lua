@@ -1,10 +1,11 @@
+local tap_module = {}
+
 local os = require("os")
-module(..., package.seeall)
 
 local counter = 1
 local failed  = false
 
-function ok(assert_true, desc)
+function tap_module.ok(assert_true, desc)
    local msg = ( assert_true and "ok " or "not ok " ) .. counter
    if ( not assert_true ) then
       failed = true
@@ -16,6 +17,8 @@ function ok(assert_true, desc)
    counter = counter + 1
 end
 
-function exit()
+function tap_module.exit()
    os.exit(failed and 1 or 0)
 end
+
+return tap_module
