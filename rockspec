@@ -1,5 +1,5 @@
 package = "lua-zlib"
-version = "0.4-1"
+version = "0.4-2"
 source = {
    url = "git://github.com/brimworks/lua-zlib.git",
    tag = "v0.4",
