@@ -30,6 +30,7 @@ build = {
       zlib = {
          sources = { "lua_zlib.c" };
          libraries = { "z" },
+         defines = { "LZLIB_COMPAT" },
       };
    }
 }

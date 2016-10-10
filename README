@@ -149,3 +149,15 @@ function compute_checksum = zlib.crc32()
             compute1("one")
             compute2(" two")
             assert(csum == compute1(compute2))
+
+NOTE: This library ships with an "lzlib" compatibility shim. However, the
+following things are not compatible:
+
+ * zlib.version() in lzlib returns a string, but this library returns a
+   numeric tuple (see above).
+
+ * zlib.{adler,crc}32() in lzlib returns the {adler,crc}32 initial value,
+   however if this value is used with calls to adler32 it works in
+   compatibility mode.
+
+To use this shim add the -DLZLIB_COMPAT compiler flag.
