@@ -35,6 +35,8 @@ build = {
       }
    },
    platforms = {
-      windows = { modules = { zlib = { libraries = { "$(ZLIB_LIBDIR)/zlib" } } } }
+      windows = { modules = { zlib = { libraries = {
+         "$(ZLIB_LIBDIR)/zlib" -- Must full path to `"zlib"`, or else will cause the `LINK : fatal error LNK1149`
+      } } } }
    }
 }
