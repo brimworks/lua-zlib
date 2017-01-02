@@ -8,7 +8,7 @@ description = {
    summary = "Simple streaming interface to zlib for Lua.",
    detailed = [[
       Simple streaming interface to zlib for Lua.
-      Consists of two functions: inflate and deflate. 
+      Consists of two functions: inflate and deflate.
       Both functions return "stream functions" (takes a buffer of input and returns a buffer of output).
       This project is hosted on github.
    ]],
@@ -28,9 +28,13 @@ build = {
    type = "builtin",
    modules = {
       zlib = {
-         sources = { "lua_zlib.c" };
+         sources = { "lua_zlib.c" },
          libraries = { "z" },
          defines = { "LZLIB_COMPAT" },
-      };
+         incdirs = { "$(ZLIB_INCDIR)" },
+      }
+   },
+   platforms = {
+      windows = { modules = { zlib = { libraries = { "$(ZLIB_LIBDIR)/zlib" } } } }
    }
 }
