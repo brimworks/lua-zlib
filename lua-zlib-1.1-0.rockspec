@@ -36,7 +36,8 @@ build = {
    },
    platforms = {
       windows = { modules = { zlib = { libraries = {
-         "$(ZLIB_LIBDIR)/zlib" -- Must full path to `"zlib"`, or else will cause the `LINK : fatal error LNK1149`
+         "$(ZLIB_LIBDIR)/zlibstatic" -- Must full path to `"zlibstatic"`, or else will cause the `LINK : fatal error LNK1149`.
+            -- And must use zlibstatic because this rock crates a dll named zlib.dll
       } } } }
    }
 }
