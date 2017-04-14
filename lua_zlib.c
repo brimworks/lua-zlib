@@ -1099,7 +1099,7 @@ static int lz_inflate_new(lua_State *L) {
 
 #ifdef LZLIB_COMPAT
     if ( lua_istable(L, 1) || lua_isuserdata(L, 1) || lua_isfunction(L, 1) || lua_isstring(L, 1) ) {
-        return lzlib_deflate(L);
+        return lzlib_inflate(L);
     }
 #endif
 
