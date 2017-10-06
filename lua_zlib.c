@@ -1098,7 +1098,8 @@ static int lz_inflate_new(lua_State *L) {
     z_stream* stream;
 
 #ifdef LZLIB_COMPAT
-    if ( lua_istable(L, 1) || lua_isuserdata(L, 1) || lua_isfunction(L, 1) || lua_isstring(L, 1) ) {
+    int type = lua_type(L, 1);
+    if ( type == LUA_TTABLE || type == LUA_TUSERDATA || type == LUA_TFUNCTION || type == LUA_TSTRING ) {
         return lzlib_inflate(L);
     }
 #endif
