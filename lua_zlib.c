@@ -944,11 +944,7 @@ static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end
 
     stream = (z_stream*)lua_touserdata(L, lua_upvalueindex(1));
     if ( stream == NULL ) {
-        if ( lua_gettop(L) >= 1 && lua_isstring(L, 1) ) {
-            lua_pushfstring(L, "IllegalState: calling %s function when stream was previously closed", name);
-            lua_error(L);
-        }
-        lua_pushstring(L, "");
+        lua_pushnil(L);
         lua_pushboolean(L, 1);
         return 2; /* Ignore duplicate calls to "close". */
     }
