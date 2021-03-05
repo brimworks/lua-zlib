@@ -20,6 +20,28 @@
 #define luaL_optint(L,n,d)  ((int)luaL_optinteger(L,(n),(d)))
 #endif
 
+
+/*
+** Memory Allocation: zlib uses lua-Allocator
+*/
+
+static voidpf lua_zalloc( voidpf opaque, uInt items, uInt size )
+{
+void* ud;
+lua_Alloc allocf = lua_getallocf( (lua_State*)opaque, &ud );
+
+   return allocf( ud, NULL, 0, items * size );
+}
+
+static void lua_zfree(voidpf opaque, voidpf address)
+{
+void* ud;
+lua_Alloc allocf = lua_getallocf( (lua_State*)opaque, &ud );
+
+   allocf( ud, address, 0, 0 );
+}
+
+
 #ifdef LZLIB_COMPAT
 /**************** lzlib compatibilty **********************************/
 /* Taken from https://raw.githubusercontent.com/LuaDist/lzlib/93b88e931ffa7cd0a52a972b6b26d37628f479f3/lzlib.c */
@@ -132,8 +154,9 @@ static lz_stream *lzstream_new(lua_State *L, int src) {
     s->o_buffer_len = 0;
     s->o_buffer_max = sizeof(s->o_buffer) / sizeof(s->o_buffer[0]);
 
-    s->zstream.zalloc = Z_NULL;
-    s->zstream.zfree = Z_NULL;
+    s->zstream.zalloc = lua_zalloc;
+    s->zstream.zfree = lua_zfree;
+    s->zstream.opaque = L;
 
     /* prepare source */
     if (lua_isstring(L, src)) {
@@ -726,8 +749,9 @@ static int lzlib_compress(lua_State *L) {
 
     luaL_buffinit(L, &b);
 
-    zs.zalloc = Z_NULL;
-    zs.zfree = Z_NULL;
+    zs.zalloc = lua_zalloc;
+    zs.zfree = lua_zfree;
+    zs.opaque = L;
 
     zs.next_out = Z_NULL;
     zs.avail_out = 0;
@@ -788,8 +812,9 @@ static int lzlib_decompress(lua_State *L)
 
     luaL_buffinit(L, &b);
 
-    zs.zalloc = Z_NULL;
-    zs.zfree = Z_NULL;
+    zs.zalloc = lua_zalloc;
+    zs.zfree = lua_zfree;
+    zs.opaque = L;
 
     zs.next_out = Z_NULL;
     zs.avail_out = 0;
@@ -1053,8 +1078,9 @@ static int lz_deflate_new(lua_State *L) {
     /*  Allocate the stream: */
     z_stream* stream = (z_stream*)lua_newuserdata(L, sizeof(z_stream));
 
-    stream->zalloc = Z_NULL;
-    stream->zfree  = Z_NULL;
+    stream->zalloc = lua_zalloc;
+    stream->zfree = lua_zfree;
+    stream->opaque = L;
 
     result = deflateInit2(stream, level, Z_DEFLATED, window_size,
                               DEF_MEM_LEVEL, Z_DEFAULT_STRATEGY);
@@ -1109,8 +1135,9 @@ static int lz_inflate_new(lua_State *L) {
     /*  By default, we will do gzip header detection w/ max window size */
     int window_size = lua_isnumber(L, 1) ? lua_tointeger(L, 1) : MAX_WBITS + 32;
 
-    stream->zalloc   = Z_NULL;
-    stream->zfree    = Z_NULL;
+    stream->zalloc = lua_zalloc;
+    stream->zfree = lua_zfree;
+    stream->opaque = L;
     stream->next_in  = Z_NULL;
     stream->avail_in = 0;
 
