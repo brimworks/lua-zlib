@@ -1148,21 +1148,21 @@ static int lz_checksum(lua_State *L) {
 
         lua_pushvalue(L, 1);
         lua_call(L, 0, 2);
-        if ( ! lua_isnumber(L, -2) || ! lua_isnumber(L, -1) ) {
+        if ( ! lua_isinteger(L, -2) || ! lua_isinteger(L, -1) ) {
             luaL_argerror(L, 1, "expected function to return two numbers");
         }
 
         /* Calculate and replace the checksum */
-        lua_pushnumber(L,
-                       combine((uLong)lua_tonumber(L, lua_upvalueindex(3)),
-                               (uLong)lua_tonumber(L, -2),
-                               (z_off_t)lua_tonumber(L, -1)));
+        lua_pushinteger(L,
+                       combine((uLong)lua_tointeger(L, lua_upvalueindex(3)),
+                               (uLong)lua_tointeger(L, -2),
+                               (z_off_t)lua_tointeger(L, -1)));
         lua_pushvalue(L, -1);
         lua_replace(L, lua_upvalueindex(3));
 
         /* Calculate and replace the length */
-        lua_pushnumber(L,
-                       lua_tonumber(L, lua_upvalueindex(4)) + lua_tonumber(L, -2));
+        lua_pushinteger(L,
+                       lua_tointeger(L, lua_upvalueindex(4)) + lua_tointeger(L, -2));
         lua_pushvalue(L, -1);
         lua_replace(L, lua_upvalueindex(4));
     } else {
@@ -1174,16 +1174,16 @@ static int lz_checksum(lua_State *L) {
         str = (const Bytef*)luaL_checklstring(L, 1, &len);
  
         /* Calculate and replace the checksum */
-        lua_pushnumber(L,
-                       checksum((uLong)lua_tonumber(L, lua_upvalueindex(3)),
+        lua_pushinteger(L,
+                       checksum((uLong)lua_tointeger(L, lua_upvalueindex(3)),
                                 str,
                                 len));
         lua_pushvalue(L, -1);
         lua_replace(L, lua_upvalueindex(3));
         
         /* Calculate and replace the length */
-        lua_pushnumber(L,
-                       lua_tonumber(L, lua_upvalueindex(4)) + len);
+        lua_pushinteger(L,
+                       lua_tointeger(L, lua_upvalueindex(4)) + len);
         lua_pushvalue(L, -1);
         lua_replace(L, lua_upvalueindex(4));
     }
@@ -1193,8 +1193,8 @@ static int lz_checksum(lua_State *L) {
 static int lz_checksum_new(lua_State *L, checksum_t checksum, checksum_combine_t combine) {
     lua_pushlightuserdata(L, checksum);
     lua_pushlightuserdata(L, combine);
-    lua_pushnumber(L, checksum(0L, Z_NULL, 0));
-    lua_pushnumber(L, 0);
+    lua_pushinteger(L, checksum(0L, Z_NULL, 0));
+    lua_pushinteger(L, 0);
     lua_pushcclosure(L, lz_checksum, 4);
     return 1;
 }
