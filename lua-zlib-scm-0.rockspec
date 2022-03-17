@@ -1,7 +1,7 @@
 package = "lua-zlib"
 version = "scm-0"
 source = {
-   url = "git://github.com/brimworks/lua-zlib.git",
+   url = "git+https://github.com/brimworks/lua-zlib.git",
    branch = "master",
 }
 description = {
