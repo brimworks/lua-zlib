@@ -21,7 +21,7 @@
 #endif
 
 #ifdef LZLIB_COMPAT
-/**************** lzlib compatibilty **********************************/
+/**************** lzlib compatibility **********************************/
 /* Taken from https://raw.githubusercontent.com/LuaDist/lzlib/93b88e931ffa7cd0a52a972b6b26d37628f479f3/lzlib.c */
 
 /************************************************************************
@@ -51,7 +51,7 @@
 
 /*
 ** =========================================================================
-** compile time options wich determine available functionality
+** compile time options which determine available functionality
 ** =========================================================================
 */
 
@@ -613,16 +613,16 @@ static int lzstream_decompress(lua_State *L) {
 
 static int lzstream_readline(lua_State *L) {
     lz_stream *s;
-    int sucess;
+    int success;
 
     s = lzstream_check(L, lua_upvalueindex(1), LZ_INFLATE);
-    sucess = lz_read_line(L, s);
+    success = lz_read_line(L, s);
 
     if (s->error != Z_OK) {
         return lz_pushresult(L, s);
     }
 
-    if (sucess) {
+    if (success) {
         return 1;
     } else {
         /* EOF */
@@ -1267,7 +1267,7 @@ LUALIB_API int luaopen_zlib(lua_State * const L) {
 
     SETLITERAL("_COPYRIGHT", "Copyright (c) 2009-2016 Brian Maher");
     SETLITERAL("_DESCRIPTION", "Simple streaming interface to the zlib library");
-    SETLITERAL("_VERSION", "lua-zlib $Id$");
+    SETLITERAL("_VERSION", "lua-zlib $Id: 9dc7bcd71c3994bc4c8e9dc86e5beaca440de17f $");
 
     /* Expose this to lua so we can do a test: */
     SETINT("_TEST_BUFSIZ", LUAL_BUFFERSIZE);
