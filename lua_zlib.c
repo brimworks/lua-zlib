@@ -1267,7 +1267,7 @@ LUALIB_API int luaopen_zlib(lua_State * const L) {
 
     SETLITERAL("_COPYRIGHT", "Copyright (c) 2009-2016 Brian Maher");
     SETLITERAL("_DESCRIPTION", "Simple streaming interface to the zlib library");
-    SETLITERAL("_VERSION", "lua-zlib $Id: 9dc7bcd71c3994bc4c8e9dc86e5beaca440de17f $");
+    SETLITERAL("_VERSION", "lua-zlib $Id$");
 
     /* Expose this to lua so we can do a test: */
     SETINT("_TEST_BUFSIZ", LUAL_BUFFERSIZE);
