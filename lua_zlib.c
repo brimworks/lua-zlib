@@ -43,7 +43,7 @@ lua_Alloc allocf = lua_getallocf( (lua_State*)opaque, &ud );
 
 
 #ifdef LZLIB_COMPAT
-/**************** lzlib compatibilty **********************************/
+/**************** lzlib compatibility **********************************/
 /* Taken from https://raw.githubusercontent.com/LuaDist/lzlib/93b88e931ffa7cd0a52a972b6b26d37628f479f3/lzlib.c */
 
 /************************************************************************
@@ -73,7 +73,7 @@ lua_Alloc allocf = lua_getallocf( (lua_State*)opaque, &ud );
 
 /*
 ** =========================================================================
-** compile time options wich determine available functionality
+** compile time options which determine available functionality
 ** =========================================================================
 */
 
@@ -636,16 +636,16 @@ static int lzstream_decompress(lua_State *L) {
 
 static int lzstream_readline(lua_State *L) {
     lz_stream *s;
-    int sucess;
+    int success;
 
     s = lzstream_check(L, lua_upvalueindex(1), LZ_INFLATE);
-    sucess = lz_read_line(L, s);
+    success = lz_read_line(L, s);
 
     if (s->error != Z_OK) {
         return lz_pushresult(L, s);
     }
 
-    if (sucess) {
+    if (success) {
         return 1;
     } else {
         /* EOF */
@@ -949,7 +949,7 @@ static int lz_assert(lua_State *L, int result, const z_stream* stream, const cha
  *
  * if no params, terminates the stream (as if we got empty string and Z_FINISH).
  */
-static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end)(z_streamp), char* name) {
+static int lz_filter_impl(lua_State *L, int (*filter)(z_streamp, int), int (*end)(z_streamp), const char* name) {
     int flush = Z_NO_FLUSH, result;
     z_stream* stream;
     luaL_Buffer buff;
@@ -1218,8 +1218,8 @@ static int lz_checksum(lua_State *L) {
 }
 
 static int lz_checksum_new(lua_State *L, checksum_t checksum, checksum_combine_t combine) {
-    lua_pushlightuserdata(L, checksum);
-    lua_pushlightuserdata(L, combine);
+    lua_pushlightuserdata(L, (void *)checksum);
+    lua_pushlightuserdata(L, (void *)combine);
     lua_pushinteger(L, checksum(0L, Z_NULL, 0));
     lua_pushinteger(L, 0);
     lua_pushcclosure(L, lz_checksum, 4);

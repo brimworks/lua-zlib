@@ -1,8 +1,8 @@
 package = "lua-zlib"
-version = "scm-0"
+version = "1.2-2"
 source = {
    url = "git+https://github.com/brimworks/lua-zlib.git",
-   branch = "master",
+   tag = "v1.2",
 }
 description = {
    summary = "Simple streaming interface to zlib for Lua.",

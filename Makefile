@@ -1,5 +1,5 @@
 # This Makefile is based on LuaSec's Makefile. Thanks to the LuaSec developers.
-# Inform the location to intall the modules
+# Inform the location to install the modules
 LUAPATH  ?= /usr/share/lua/5.1
 LUACPATH ?= /usr/lib/lua/5.1
 INCDIR   ?= -I/usr/include/lua5.1

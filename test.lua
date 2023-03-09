@@ -12,23 +12,7 @@ local ok    = tap.ok
 local table = require("table")
 local io    = require("io")
 
-function main()
-   test_stats()
-   test_buff_err()
-   test_small_inputs()
-   test_basic()
-   test_large()
-   test_no_input()
-   test_invalid_input()
-   test_streaming()
-   test_illegal_state()
-   test_checksum()
-   test_version()
-   test_tom_macwright()
-   test_amnon_david()
-end
-
-function test_tom_macwright()
+local function test_tom_macwright()
     local deflated =
         assert(io.open(src_dir.. "/tom_macwright.gz")):read("*a")
 
@@ -40,7 +24,8 @@ function test_tom_macwright()
     ok(expected_inflated == inflated, "Tom MacWright Test")
 end
 
-function test_amnon_david()
+-- luacheck: ignore eof bytes_in bytes_out deflated
+local function test_amnon_david()
     local body = assert(io.open(src_dir.."/amnon_david.gz")):read("*a")
 
     local inflate = lz.inflate()
@@ -50,7 +35,7 @@ function test_amnon_david()
     local deflated, eof, bytes_in, bytes_out = deflate(inflated, "full")
 end
 
-function test_stats()
+local function test_stats()
    local string = ("one"):rep(20)
    local deflated, eof, bin, bout = lz.deflate()(string, 'finish')
    ok(eof == true, "eof is true (" .. tostring(eof) .. ")");
@@ -63,7 +48,7 @@ end
 -- force inflate() to return a Z_BUF_ERROR (which should be recovered
 -- from).  For some reason this only happens when the input is exactly
 -- LUAL_BUFFERSIZE (at least on my machine).
-function test_buff_err()
+local function test_buff_err()
    local text = ("X"):rep(lz._TEST_BUFSIZ);
 
    local deflated = lz.deflate()(text, 'finish')
@@ -73,7 +58,7 @@ function test_buff_err()
    end
 end
 
-function test_small_inputs()
+local function test_small_inputs()
    local text = ("X"):rep(lz._TEST_BUFSIZ);
 
    local deflated = lz.deflate()(text, 'finish')
@@ -88,7 +73,7 @@ function test_small_inputs()
    ok(inflated == text, "Expected " .. #text .. " Xs got " .. #inflated)
 end
 
-function test_basic()
+local function test_basic()
     local test_string = "abcdefghijklmnopqrstuv"
 
     ok(lz.inflate()(lz.deflate()(), "finish") == "")
@@ -100,7 +85,7 @@ function test_basic()
     ok(test_string == inflated, "'" .. tostring(test_string) .. "' == '" .. tostring(inflated) .. "'")
 end
 
-function test_large()
+local function test_large()
    -- Try a larger string:
    local numbers = ""
    for i=1, 100 do numbers = numbers .. string.format("%3d", i) end
@@ -113,7 +98,7 @@ function test_large()
    ok(test_string == inflated, "large string")
 end
 
-function test_no_input()
+local function test_no_input()
    local stream = lz.deflate()
    local deflated = stream("")
    deflated = deflated .. stream("")
@@ -121,7 +106,7 @@ function test_no_input()
    ok("" == lz.inflate()(deflated, "finish"), "empty string")
 end
 
-function test_invalid_input()
+local function test_invalid_input()
    local stream = lz.inflate()
    local isok, err = pcall(
       function()
@@ -132,11 +117,11 @@ function test_invalid_input()
       string.format("InvalidInput error (%s)", err))
 end
 
-function test_streaming()
+local function test_streaming()
    local shrink     = lz.deflate(lz.BEST_COMPRESSION)
    local enlarge    = lz.inflate()
    local expected   = {}
-   local got        = {} 
+   local got        = {}
    local chant      = "Isn't He great, isn't He wonderful?\n"
    for i=1,100 do
       if ( i == 100 ) then
@@ -158,7 +143,8 @@ function test_streaming()
    ok(table.concat(got) == table.concat(expected), "streaming works")
 end
 
-function test_illegal_state()
+-- luacheck: ignore enlarge
+local function test_illegal_state()
    local stream = lz.deflate()
    stream("abc")
    stream() -- eof/close
@@ -169,14 +155,13 @@ function test_illegal_state()
       end)
    ok(string.find(emsg, "^IllegalState"),
       string.format("IllegalState error (%s)", emsg))
-   
+
    local enlarge = lz.inflate()
 end
 
-function test_checksum()
+local function test_checksum()
    ok(lz.crc32()("123456789") == 0xCBF43926, "crc32()(\"123456789\") == 0xCBF43926")
    ok(lz.adler32()("123456789") == 0x091E01DE, "adler()(\"123456789\") == 0x091E01DE")
-
    for _, factory in pairs{lz.crc32, lz.adler32} do
       local csum = factory()("one two")
 
@@ -193,11 +178,27 @@ function test_checksum()
    end
 end
 
-function test_version()
+local function test_version()
    local major, minor, patch = lz.version()
    ok(1 == major, "major version 1 == " .. major);
    ok(type(minor) == "number", "minor version is number (" .. minor .. ")")
    ok(type(patch) == "number", "patch version is number (" .. patch .. ")")
+end
+
+local function main()
+   test_stats()
+   test_buff_err()
+   test_small_inputs()
+   test_basic()
+   test_large()
+   test_no_input()
+   test_invalid_input()
+   test_streaming()
+   test_illegal_state()
+   test_checksum()
+   test_version()
+   test_tom_macwright()
+   test_amnon_david()
 end
 
 main()

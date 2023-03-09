@@ -118,6 +118,25 @@ function stream = zlib.inflate([int windowBits])
         stream, and bytes_out is the number of bytes returned in
         inflated string chunks.
 
+        For data created by merging multiple compressed streams (#41),
+        you want to continue in inflating until there is no more data.
+        Example:
+        local source = io.open"allparts.gz"
+        local dest = io.tmpfile()
+
+        local inflate = lz.inflate()
+        local shift = 0
+        while true do
+            local data = source:read(4096) -- read in 4K chunks
+            if not data then break end     -- end if no more data
+            local inflated, eos, bytes_in, bytes_out = inflate(data)
+            dest:write(inflated)           -- write inflated data
+            if eos then                    -- end of current stream
+                source:seek("set", shift + bytes_in)
+                shift = shift + bytes_in   -- update shift
+                inflate = lz.inflate()     -- new inflate per stream
+            end
+        end
 
 function compute_checksum = zlib.adler32()
 function compute_checksum = zlib.crc32()
