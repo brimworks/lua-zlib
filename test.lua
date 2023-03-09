@@ -160,6 +160,8 @@ local function test_illegal_state()
 end
 
 local function test_checksum()
+   ok(lz.crc32()("123456789") == 0xCBF43926, "crc32()(\"123456789\") == 0xCBF43926")
+   ok(lz.adler32()("123456789") == 0x091E01DE, "adler()(\"123456789\") == 0x091E01DE")
    for _, factory in pairs{lz.crc32, lz.adler32} do
       local csum = factory()("one two")
 
