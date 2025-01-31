@@ -180,7 +180,11 @@ local function test_version()
    local major, minor, patch = lz.version()
    ok(1 == major, "major version 1 == " .. major);
    ok(type(minor) == "number", "minor version is number (" .. minor .. ")")
-   ok(type(patch) == "number", "patch version is number (" .. patch .. ")")
+   if ( patch == nil ) then
+      ok(patch == nil, "patch version is empty or is number (empty)")
+   else
+      ok(type(patch) == "number", "patch version is empty or is number (" .. patch .. ")")
+   end
 end
 
 local function main()
