@@ -32,11 +32,24 @@ build = {
          libraries = { "z" },
          defines = { "LZLIB_COMPAT" },
          incdirs = { "$(ZLIB_INCDIR)" },
+         libdirs = { "$(ZLIB_LIBDIR)" }
       }
    },
    platforms = {
-      windows = { modules = { zlib = { libraries = {
-         "$(ZLIB_LIBDIR)/zlib" -- Must full path to `"zlib"`, or else will cause the `LINK : fatal error LNK1149`
-      } } } }
+      windows = {
+         modules = {
+            zlib = {
+               libraries = { "zlib" }
+            }
+         }
+      },
+      mingw = {
+         modules = {
+            zlib = {
+               libraries = { "zlib1" },
+               libdirs = { "$(ZLIB_INCDIR)/../bin" }
+            }
+         }
+      }
    }
 }
