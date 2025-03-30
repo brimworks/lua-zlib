@@ -8,20 +8,65 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ "ubuntu-20.04", "macos-14", "windows-2025" ]
         luaVersion: [ "5.4", "5.3", "5.2", "5.1", "luajit", "luajit-openresty" ]
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    env:
+      LUAROCKS_WINDOWS_DEPS_DIR: C:\external
+      WINDOWS_ZLIB_VERSION: 1.3.1
     steps:
     - name: Checkout
       uses: actions/checkout@v4
+    - name: Setup MSVC command prompt
+      if: ${{ runner.os == 'Windows' && !startsWith(matrix.luaVersion, 'luajit') }}
+      uses: ilammy/msvc-dev-cmd@v1
     - name: Setup ‘lua’
       uses: luarocks/gh-actions-lua@v10
       with:
         luaVersion: ${{ matrix.luaVersion }}
     - name: Setup ‘luarocks’
       uses: luarocks/gh-actions-luarocks@v5
+    - name: Restore zlib tarball on Windows
+      if: ${{ runner.os == 'Windows' }}
+      id: restore-zlib-tarball
+      uses: actions/cache/restore@v4
+      with:
+        path: "zlib-${{ env.WINDOWS_ZLIB_VERSION }}.tar.gz"
+        key: "zlib-${{ env.WINDOWS_ZLIB_VERSION }}"
+    - name: Download zlib
+      if: ${{ runner.os == 'Windows' && steps.restore-zlib-tarball.outputs.cache-hit != 'true' }}
+      run: curl -L -O "https://zlib.net/fossils/zlib-${{ env.WINDOWS_ZLIB_VERSION }}.tar.gz"
+    - name: Save zlib tarball
+      if: ${{ runner.os == 'Windows' && steps.restore-zlib-tarball.outputs.cache-hit != 'true' }}
+      uses: actions/cache/save@v4
+      with:
+        path: "zlib-${{ env.WINDOWS_ZLIB_VERSION }}.tar.gz"
+        key: "zlib-${{ env.WINDOWS_ZLIB_VERSION }}"
+    - name: Extract, configure, build and install zlib on Windows
+      shell: cmd
+      if: ${{ runner.os == 'Windows' }}
+      run: |
+        tar -xf "zlib-${{ env.WINDOWS_ZLIB_VERSION }}.tar.gz"
+        IF "${{ matrix.luaVersion }}"=="luajit" (
+          SET CMAKE_GENERATOR=MinGW Makefiles
+        ) ELSE IF "${{ matrix.luaVersion }}"=="luajit-openresty" (
+          SET CMAKE_GENERATOR=MinGW Makefiles
+        ) ELSE (
+          SET CMAKE_GENERATOR=NMake Makefiles
+        )
+        cmake ^
+          -G "%CMAKE_GENERATOR%" ^
+          -DCMAKE_BUILD_TYPE=Release ^
+          -DBUILD_SHARED_LIBS=ON ^
+          --install-prefix "${{ env.LUAROCKS_WINDOWS_DEPS_DIR }}" ^
+          -S "zlib-${{ env.WINDOWS_ZLIB_VERSION }}" ^
+          -B build-zlib && ^
+        cmake --build build-zlib --config Release && ^
+        cmake --install build-zlib --config Release
+        echo ${{ env.LUAROCKS_WINDOWS_DEPS_DIR }}\bin>>${{ github.path }}
+    - name: Lint rockspec
+      run: luarocks lint lua-zlib-scm-0.rockspec
     - name: Build & install
-      run: |
-        luarocks --local make
+      run: luarocks make lua-zlib-scm-0.rockspec
     - name: Run tests
-      run: |
-        lua test.lua
+      run: lua test.lua
