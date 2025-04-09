@@ -5,7 +5,7 @@ Provides a functional, streaming interface to zlib.
 ## Prerequisites
 
 To use this library, you need zlib, get it here:
-* <http://www.gzip.org/zlib/>
+* [https://zlib.net/](https://zlib.net/)
 
 ## Installing
 
@@ -35,7 +35,7 @@ luaopen_zlib(L);
 ```lua
 -- @return major (integer)
 -- @return minor (integer)
--- @return patch (integer)
+-- @return patch (integer | nil)
 local major, minor, patch = zlib.version()
 ```
 
