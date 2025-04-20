@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-20.04", "macos-14", "windows-2025" ]
+        os: [ "ubuntu-24.04", "macos-14", "windows-2025" ]
         luaVersion: [ "5.4", "5.3", "5.2", "5.1", "luajit", "luajit-openresty" ]
     runs-on: ${{ matrix.os }}
     env:
