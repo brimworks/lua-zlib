@@ -16,7 +16,7 @@ description = {
    license = "MIT"
 }
 dependencies = {
-   "lua >= 5.1, <= 5.4"
+   "lua >= 5.1, <= 5.5"
 }
 external_dependencies = {
     ZLIB = {
