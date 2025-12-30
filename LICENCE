@@ -1,5 +1,5 @@
 Author  : Brian Maher <brian at brimworks dot com>
-Library : lua_zlib - Lua 5.1 to Lua 5.4 interface to zlib
+Library : lua_zlib - Lua 5.1 to Lua 5.5 interface to zlib
 
 The MIT License
 
